@@ -11,6 +11,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 module QuickSpec.Internal.Explore.Conditionals where
 
+import Debug.Trace
 import QuickSpec.Internal.Prop
 import QuickSpec.Internal.Term
 import QuickSpec.Internal.Type
@@ -41,13 +42,16 @@ instance (Typed fun, Ord fun, PrettyTerm fun, Ord norm, MonadPruner (Term (WithC
       lift (add (mapFun Normal prop))
       considerConditionalising prop
 
-conditionalsUniverse :: (Typed fun, Predicate fun) => [Type] -> [fun] -> Universe
+conditionalsUniverse :: (Show fun, Typed fun, Predicate fun) => [Type] -> [fun] -> Universe
 conditionalsUniverse tys funs =
   universe $
     tys ++
     (map typ $
-      map Normal funs ++
-      [ Constructor pred clas_test_case | pred <- funs, Predicate{..} <- [classify pred] ])
+      (traceShowId $ map Normal funs) ++
+      [ Constructor pred clas_test_case
+      | pred <- funs
+      , Predicate{..} <- [classify pred]
+      ])
 
 runConditionals ::
   (PrettyTerm fun, Ord norm, MonadPruner (Term (WithConstructor fun)) norm m, Predicate fun, MonadTerminal m) =>
@@ -64,12 +68,12 @@ data Classification fun =
     Predicate { clas_selectors :: [fun], clas_test_case :: Type, clas_true :: Term fun }
   | Selector { clas_index :: Int, clas_pred :: fun, clas_test_case :: Type }
   | Function
-  deriving (Eq, Ord, Functor)
+  deriving (Eq, Ord, Functor, Show)
 
 data WithConstructor fun =
     Constructor fun Type
   | Normal fun
-  deriving (Eq, Ord)
+  deriving (Eq, Ord, Show)
 
 instance Sized fun => Sized (WithConstructor fun) where
   size Constructor{} = 0

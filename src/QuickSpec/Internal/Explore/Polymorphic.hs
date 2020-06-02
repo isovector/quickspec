@@ -11,6 +11,7 @@
 {-# LANGUAGE RecordWildCards #-}
 module QuickSpec.Internal.Explore.Polymorphic(module QuickSpec.Internal.Explore.Polymorphic, Result(..), Universe(..)) where
 
+import Debug.Trace
 import qualified QuickSpec.Internal.Explore.Schemas as Schemas
 import QuickSpec.Internal.Explore.Schemas(Schemas, Result(..))
 import QuickSpec.Internal.Term
@@ -48,6 +49,7 @@ instance PrettyTerm fun => PrettyTerm (PolyFun fun) where
 
 -- The set of all types being explored
 data Universe = Universe { univ_types :: Set Type }
+  deriving Show
 
 schemas = lens pm_schemas (\x y -> y { pm_schemas = x })
 univ = lens pm_universe (\x y -> y { pm_universe = x })
@@ -203,14 +205,14 @@ universe :: Typed a => [a] -> Universe
 universe xs = Universe (Set.fromList univ)
   where
     -- Types of all functions
-    types = usort $ typeVar:map typ xs
+    types = traceShowId $ usort $ typeVar:map typ xs
 
     -- Take the argument and result type of every function.
-    univBase = usort $ concatMap components types
+    univBase = traceShowId $ usort $ concatMap components types
 
     -- Add partially-applied functions, if they can be used to
     -- fill in a higher-order argument.
-    univHo = usort $ concatMap addHo univBase
+    univHo = traceShowId $ usort $ concatMap addHo univBase
       where
         addHo ty =
           ty:
@@ -218,7 +220,7 @@ universe xs = Universe (Set.fromList univ)
           | fun <- types,
             ho <- arrows fun,
             sub <- typeInstancesList univBase (components fun) ]
-  
+
     -- Now close the type universe under "anti-substitution":
     -- if u = typeSubst sub t, and u is in the universe, then
     -- oneTypeVar t should be in the universe.
@@ -244,7 +246,7 @@ universe xs = Universe (Set.fromList univ)
             Just (arg, res) ->
               [ty] ++ arrows1 arg ++ arrows1 res
             _ -> []
- 
+
 inUniverse :: (PrettyTerm fun, Typed fun) => Term fun -> Universe -> Bool
 t `inUniverse` Universe{..} =
   and [oneTypeVar (typ u) `Set.member` univ_types | u <- subtermsFO t ++ map Var (vars t)]

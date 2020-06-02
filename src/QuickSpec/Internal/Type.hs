@@ -24,6 +24,7 @@ module QuickSpec.Internal.Type(
   unwrap, Unwrapped(..), Wrapper(..),
   mapValue, forValue, ofValue, withValue, pairValues, wrapFunctor, unwrapFunctor, bringFunctor) where
 
+import Debug.Trace
 import Control.Monad
 import Data.DList(DList)
 import Data.Maybe

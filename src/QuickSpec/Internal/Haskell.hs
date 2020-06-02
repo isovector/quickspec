@@ -1,21 +1,24 @@
-{-# OPTIONS_HADDOCK hide #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE PatternGuards #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE ConstraintKinds        #-}
+{-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE DefaultSignatures      #-}
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE GADTs                  #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE PatternGuards          #-}
+{-# LANGUAGE RankNTypes             #-}
+{-# LANGUAGE RecordWildCards        #-}
+{-# LANGUAGE ScopedTypeVariables    #-}
+{-# LANGUAGE StandaloneDeriving     #-}
+{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE TypeOperators          #-}
+{-# LANGUAGE UndecidableInstances   #-}
+{-# OPTIONS_HADDOCK hide            #-}
+
 module QuickSpec.Internal.Haskell where
 
+import Debug.Trace
 import QuickSpec.Internal.Haskell.Resolve
 import QuickSpec.Internal.Type
 import QuickSpec.Internal.Prop
@@ -278,6 +281,10 @@ data Constant =
     con_constraints :: [Type],
     con_size :: Int,
     con_classify :: Classification Constant }
+    deriving Show
+
+instance Show TermStyle where
+  show _ = "<TermStyle>"
 
 instance Eq Constant where
   x == y =
@@ -575,8 +582,8 @@ quickSpec cfg@Config{..} = do
       [true | any (/= Function) (map classify (f cfg_constants))] ++
       f cfg_constants ++ concatMap selectors (f cfg_constants)
     constants = constantsOf concat
-    
-    univ = conditionalsUniverse (instanceTypes instances cfg) constants
+
+    univ = traceShowId $ conditionalsUniverse (instanceTypes instances cfg) $ traceShowId $ constants
     instances = cfg_instances `mappend` baseInstances
 
     eval = evalHaskell cfg_default_to instances
