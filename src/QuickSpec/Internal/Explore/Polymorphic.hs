@@ -93,7 +93,7 @@ explore t = do
     case res of
       Rejected{} -> return res
       Accepted{} -> do
-        ress <- forM (typeInstances univ t) $ \u ->
+        ress <- forM (typeInstances univ t) $ \u -> do
           exploreNoMGU u
         return res { result_props = concatMap result_props (res:ress) }
 
@@ -104,6 +104,7 @@ exploreNoMGU ::
   StateT (Polymorphic testcase result fun norm) m (Result fun)
 exploreNoMGU t = do
   univ <- access univ
+  putStatus $ "investigating term " ++ render (pPrint t)
   if not (t `inUniverse` univ) then return (Rejected []) else do
     schemas1 <- access schemas
     (res, schemas2) <- unPolyM (runStateT (Schemas.explore (polyTerm t)) schemas1)
@@ -218,7 +219,7 @@ universe xs = Universe (Set.fromList univ)
           | fun <- types,
             ho <- arrows fun,
             sub <- typeInstancesList univBase (components fun) ]
-  
+
     -- Now close the type universe under "anti-substitution":
     -- if u = typeSubst sub t, and u is in the universe, then
     -- oneTypeVar t should be in the universe.
@@ -244,7 +245,7 @@ universe xs = Universe (Set.fromList univ)
             Just (arg, res) ->
               [ty] ++ arrows1 arg ++ arrows1 res
             _ -> []
- 
+
 inUniverse :: (PrettyTerm fun, Typed fun) => Term fun -> Universe -> Bool
 t `inUniverse` Universe{..} =
   and [oneTypeVar (typ u) `Set.member` univ_types | u <- subtermsFO t ++ map Var (vars t)]

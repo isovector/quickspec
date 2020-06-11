@@ -76,9 +76,12 @@ quickSpec present eval maxSize maxCommutativeSize singleUse univ enum = do
         total = length ts
         consider (i, t) = do
           putStatus (printf "testing terms of size %d: %d/%d" m i total)
+          putStatus "yo baby"
           res <- explore t
           putStatus (printf "testing terms of size %d: %d/%d" m i total)
+          putStatus "yo done"
           lift $ mapM_ present (result_props res)
+          putStatus "yo wat"
           case res of
             Accepted _ -> return True
             Rejected _ -> return False
