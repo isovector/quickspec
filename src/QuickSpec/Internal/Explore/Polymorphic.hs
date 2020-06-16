@@ -107,8 +107,11 @@ exploreNoMGU t = do
   putStatus $ "investigating term " ++ render (pPrint t)
   if not (t `inUniverse` univ) then return (Rejected []) else do
     schemas1 <- access schemas
+    putStatus $ "doing schemas1 for " ++ render (pPrint t)
     (res, schemas2) <- unPolyM (runStateT (Schemas.explore (polyTerm t)) schemas1)
+    putStatus $ "did schemas1 for " ++ render (pPrint t)
     schemas ~= schemas2
+    putStatus $ "mapPropping for " ++ render (pPrint t)
     return (mapProps (regeneralise . mapFun fun_original) res)
   where
     mapProps f (Accepted props) = Accepted (map f props)

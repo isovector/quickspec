@@ -10,6 +10,7 @@
 {-# LANGUAGE RankNTypes #-}
 module QuickSpec.Internal where
 
+import Debug.Trace
 import QuickSpec.Internal.Haskell(Predicateable, PredicateTestCase, Names(..), Observe(..))
 import qualified QuickSpec.Internal.Haskell as Haskell
 import qualified QuickSpec.Internal.Haskell.Resolve as Haskell
@@ -129,7 +130,7 @@ predicate :: ( Predicateable a
 predicate name x =
   Sig $ \ctx@(Context _ names) ->
     if name `elem` names then id else
-    let (insts, con) = Haskell.predicate name x in
+    let (insts, con) = traceShowId $ Haskell.predicate name x in
       runSig [addInstances insts `mappend` customConstant con] ctx
 
 -- | Declare a predicate with a given name and value.

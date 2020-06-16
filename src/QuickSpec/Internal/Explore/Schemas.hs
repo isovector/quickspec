@@ -65,21 +65,32 @@ explore ::
   MonadTester testcase (Term fun) m, MonadPruner (Term fun) norm m, MonadTerminal m) =>
   Term fun -> StateT (Schemas testcase result fun norm) m (Result fun)
 explore t0 = do
+  putStatus $ "schema exploring for " ++ render (pPrint t0)
   let t = mostSpecific t0
+  putStatus $ "with most specific " ++ render (pPrint t)
   res <- zoom classes (Terms.explore t)
+  putStatus $ "zoomed for " ++ render (pPrint t)
   singleUse <- access single_use
+  putStatus $ "got a single use for " ++ render (pPrint t)
   case res of
     Terms.Singleton -> do
+      putStatus $ "its a singleton " ++ render (pPrint t)
       inst <- gets sc_instantiate_singleton
-      if inst t then
-        instantiateRep t
+      putStatus $ "found an instantiation " ++ render (pPrint t)
+      if inst t then do
+        putStatus $ "and it insts " ++ render (pPrint t)
+        instantiateRep t <*
+          (putStatus $ "instantiated it " ++ render (pPrint t))
        else do
+        putStatus $ "and it DOES NOT inst " ++ render (pPrint t)
         -- Add the most general instance of the schema
         zoom (instance_ t) (Terms.explore (mostGeneral singleUse t0))
         return (Accepted [])
-    Terms.Discovered ([] :=>: _ :=: u) ->
+    Terms.Discovered ([] :=>: _ :=: u) -> do
+      putStatus $ "discovered that shit " ++ render (pPrint t)
       exploreIn u t
-    Terms.Knew ([] :=>: _ :=: u) ->
+    Terms.Knew ([] :=>: _ :=: u) -> do
+      putStatus $ "knew that shit " ++ render (pPrint t)
       exploreIn u t
     _ -> error "term layer returned non-equational property"
 

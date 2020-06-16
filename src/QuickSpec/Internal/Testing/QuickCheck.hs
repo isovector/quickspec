@@ -3,6 +3,7 @@
 {-# LANGUAGE FlexibleContexts, FlexibleInstances, RecordWildCards, MultiParamTypeClasses, GeneralizedNewtypeDeriving #-}
 module QuickSpec.Internal.Testing.QuickCheck where
 
+import Debug.Trace
 import QuickSpec.Internal.Testing
 import QuickSpec.Internal.Pruning
 import QuickSpec.Internal.Prop
@@ -75,13 +76,13 @@ uniform n k =
   where
     leftovers = n `mod` k
 
-instance (Monad m, Eq result) => MonadTester testcase term (Tester testcase term result m) where
+instance (Show result, MonadTerminal m, Monad m, Eq result) => MonadTester testcase term (Tester testcase term result m) where
   test prop =
     Tester $ do
       env <- ask
       return $! quickCheckTest env prop
 
-quickCheckTest :: Eq result =>
+quickCheckTest :: (Show result, Eq result) =>
   Environment testcase term result ->
   Prop term -> Maybe testcase
 quickCheckTest Environment{env_config = Config{..}, ..} (lhs :=>: rhs) =
@@ -94,4 +95,5 @@ quickCheckTest Environment{env_config = Config{..}, ..} (lhs :=>: rhs) =
         return testcase
 
     testEq testcase (t :=: u) =
-      env_eval testcase t == env_eval testcase u
+
+      (env_eval testcase t) == (env_eval testcase u)

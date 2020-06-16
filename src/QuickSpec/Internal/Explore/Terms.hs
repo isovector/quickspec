@@ -66,16 +66,22 @@ explore t = do
   --  Knew prop -> putLine ("knew " ++ prettyShow prop)
   --  Singleton -> putLine ("singleton " ++ prettyShow t)
   return res
-explore' :: (Pretty term, Typed term, Ord norm, Ord result, MonadTester testcase term m, MonadPruner term norm m) =>
+explore' :: (MonadTerminal m, Pretty term, Typed term, Ord norm, Ord result, MonadTester testcase term m, MonadPruner term norm m) =>
   term -> StateT (Terms testcase result term norm) m (Result term)
 explore' t = do
+  putStatus $ "terms exploring " ++ render (pPrint t)
   norm <- normaliser
+  putStatus $ "terms normalized " ++ render (pPrint t)
   exp norm $ \prop -> do
+    putStatus $ "terms testing " ++ render (pPrint prop)
     res <- test prop
+    putStatus $ "terms tested " ++ render (pPrint prop)
     case res of
       Nothing -> do
+        putStatus $ "terms already discorered? " ++ render (pPrint prop)
         return (Discovered prop)
       Just tc -> do
+        putStatus $ "adding the test case " ++ render (pPrint prop)
         treeForType ty %= addTestCase tc
         exp norm $
           error "returned counterexample failed to falsify property"

@@ -11,6 +11,7 @@
 {-# LANGUAGE DeriveFunctor #-}
 module QuickSpec.Internal.Explore.Conditionals where
 
+import Debug.Trace
 import QuickSpec.Internal.Prop
 import QuickSpec.Internal.Term
 import QuickSpec.Internal.Type
@@ -50,7 +51,7 @@ conditionalsUniverse tys funs =
       [ Constructor pred clas_test_case | pred <- funs, Predicate{..} <- [classify pred] ])
 
 runConditionals ::
-  (PrettyTerm fun, Ord norm, MonadPruner (Term (WithConstructor fun)) norm m, Predicate fun, MonadTerminal m) =>
+  (Show (WithConstructor fun), PrettyTerm fun, Ord norm, MonadPruner (Term (WithConstructor fun)) norm m, Predicate fun, MonadTerminal m) =>
   [fun] -> Conditionals m a -> m a
 runConditionals preds mx =
   run (mapM_ considerPredicate preds >> mx)
@@ -65,6 +66,9 @@ data Classification fun =
   | Selector { clas_index :: Int, clas_pred :: fun, clas_test_case :: Type }
   | Function
   deriving (Eq, Ord, Functor)
+
+instance Pretty fun => Show (WithConstructor fun) where
+  show = show . pPrint
 
 data WithConstructor fun =
     Constructor fun Type
@@ -109,9 +113,10 @@ considerPredicate f =
       let
         x = Var (V ty 0)
         eqns =
-          [Fun (Constructor f ty) :@: [Fun (Normal sel) :$: x | sel <- sels] === x,
-           Fun (Normal f) :@: [Fun (Normal sel) :$: x | sel <- sels] === fmap Normal true]
-      mapM_ (lift . add) eqns
+          [ Fun (Constructor f ty) :@: [Fun (Normal sel) :$: x | sel <- sels] === x
+          , Fun (Normal f) :@: [Fun (Normal sel) :$: x | sel <- sels] === fmap Normal true
+          ]
+      mapM_ (lift . add) $ traceShowId eqns
     _ -> return ()
 
 considerConditionalising ::
@@ -122,7 +127,7 @@ considerConditionalising (lhs :=>: t :=: u) = do
   -- If we have discovered that "somePredicate x_1 x_2 ... x_n = True"
   -- we should add the axiom "get_x_n (toSomePredicate x_1 x_2 ... x_n) = x_n"
   -- to the set of known equations
-  case t of
+  case trace (show $ pPrint t) t of
     Fun f :@: ts | Predicate{..} <- classify f -> -- It is an interesting predicate, i.e. it was added by the user
       when (norm u == norm clas_true) $
         addPredicate lhs f ts

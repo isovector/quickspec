@@ -34,6 +34,9 @@ data Instances =
     -- The resulting instance search function (memoised).
     is_find      :: Type -> [Value Identity] }
 
+instance Show Instances where
+  show = show . is_instances
+
 -- A smart constructor for Instances.
 makeInstances :: [Poly (Value Identity)] -> Instances
 makeInstances is = inst

@@ -53,4 +53,4 @@ watchPruner :: Monad m => WatchPruner term m a -> m (a, [Prop term])
 watchPruner (WatchPruner mx) = do
   (x, props) <- runStateT mx []
   return (x, reverse props)
-    
+

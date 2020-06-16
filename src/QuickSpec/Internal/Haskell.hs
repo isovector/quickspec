@@ -279,6 +279,9 @@ data Constant =
     con_size :: Int,
     con_classify :: Classification Constant }
 
+instance Show Constant where
+  show = show . pPrint
+
 instance Eq Constant where
   x == y =
     con_name x == con_name y && typ (con_value x) == typ (con_value y)
@@ -575,7 +578,7 @@ quickSpec cfg@Config{..} = do
       [true | any (/= Function) (map classify (f cfg_constants))] ++
       f cfg_constants ++ concatMap selectors (f cfg_constants)
     constants = constantsOf concat
-    
+
     univ = conditionalsUniverse (instanceTypes instances cfg) constants
     instances = cfg_instances `mappend` baseInstances
 
