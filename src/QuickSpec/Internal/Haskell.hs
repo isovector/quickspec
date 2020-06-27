@@ -639,6 +639,7 @@ quickSpec cfg@Config{..} = do
          | ty <- Set.toList (univ_types univ),
            sub <- maybeToList (matchType (typeRes (typ con)) ty) ]
 
+    enumerator :: [Term Constant] -> Enumerator (Term Constant)
     enumerator cons =
       sortTerms measure $
       filterEnumerator (all constraintsOk . funs) $

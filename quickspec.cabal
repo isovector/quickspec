@@ -1,6 +1,6 @@
 Name:                quickspec
 Version:             2.1.2
-Cabal-version:       >= 1.6
+Cabal-version:       >= 1.8
 Build-type:          Simple
 
 Homepage:            https://github.com/nick8325/quickspec
@@ -69,6 +69,19 @@ source-repository head
   type:     git
   location: git://github.com/nick8325/quickspec.git
   branch:   master
+
+executable quickspec-exe
+  main-is: Main.hs
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , quickspec
+    , containers
+    , transformers
+    , mtl
+    , QuickCheck
 
 library
   ghc-options: -W
